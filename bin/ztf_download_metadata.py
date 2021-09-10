@@ -1,6 +1,4 @@
-import os, sys
-import pylab as plt
-import numpy as np
+import os
 import pandas as pd
 
 from astropy.time import Time
