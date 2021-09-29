@@ -60,7 +60,7 @@ def exist(files):
 def get_filenames_from_meta(zquery, suffix='sciimg.fits'):
     
     #-- Create filenames from metadata but do not download them
-    files_sci = zquery.get_data(suffix=suffix, downloadit=False)
+    files_sci = zquery.get_data(suffix=suffix, downloadit=False, exist=False)
 
     #-- Check how many exist
     files_sci_exist = exist(files_sci)
