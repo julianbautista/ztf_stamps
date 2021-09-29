@@ -133,6 +133,8 @@ def main():
                         help='Directory containing metadata tables')
     parser.add_argument('--outdir', type=str, default='stamps',
                         help='Directory where stamps are saved')
+    parser.add_argument('--pixels', type=int, default=32,
+                        help='Number of pixels on a side for the stamps.')
     parser.add_argument('--ifirst', type=int, default=0,
                         help='Index of first object in the list')
     parser.add_argument('--ilast', type=int, default=0,
@@ -208,7 +210,7 @@ def main():
             print(f'{name}: Producing the missing {image_files.size} stamps')
 
         #-- Produce stamps
-        stamps = get_stamps(image_files, sky_coord, pixels=32)
+        stamps = get_stamps(image_files, sky_coord, pixels=args.pixels)
 
         #-- Write them
         for stamp in stamps:

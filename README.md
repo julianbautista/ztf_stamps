@@ -3,7 +3,9 @@
 This package is meant to download all images associated with a list of transists, given a time window. 
 It has only been used at the Centre de Calcul IN2P3. An account and access to ztf data are required. 
 
-1. First download the metadata associated with the transient list. The script will read the name of the object, ra, dec, and the mjd of peak flux and write the metadata associated to all available images between `phase-min` and `phase-max` in days. 
+## 1. Query metadata for each transient 
+
+ First download the metadata associated with the transient list. The script will read the name of the object, ra, dec, and the mjd of peak flux and write the metadata associated to all available images between `phase-min` and `phase-max` in days. 
 
  `python bin/ztf_download_metadata.py --table BTS_transients_2021-07-05.csv --outdir metatables --phase-min 50 --phase-max 150 [--ifirst 0] [--ilast 10] [--overwrite]`
 
@@ -13,7 +15,11 @@ It has only been used at the Centre de Calcul IN2P3. An account and access to zt
 
  `python bin/ztf_merge_metadata.py --meta-dir metatables --outname ZTF_bigtable.csv `
 
-2. Download the data from a metadata table. First login into a computing node (not a login node)
+## 2. Download images
+ 
+ From the metadata, we can proceed to downloading the corresponding images. 
+ 
+ First login into a computing node (not a login node)
 
  `qlogin  -P P_lsst -l ct=15:00:00,vmem=10000M`
 
@@ -23,7 +29,7 @@ It has only been used at the Centre de Calcul IN2P3. An account and access to zt
 
  The `--check-images` option allows to only print the summary of how many images are already downloaded.
 
- To follow the progress, login in the same machine in a new terminal with the following command, replacing XXXX with the correct number:
+ You can follow the download progress on a browser. In a new terminal, log in the same machine as the one where the job above is running, using with the following command (replacing XXXX with the correct number):
 
  `ssh -J username@cca.in2p3.fr -L 8787:localhost:8787 username@ccwigeXXXX.in2p3.fr`
 
@@ -31,9 +37,17 @@ It has only been used at the Centre de Calcul IN2P3. An account and access to zt
 
  https://localhost:8787/status
 
-4. Produce the stamps with the following command
+## 3. Produce stamps for each transient 
 
- `python bin/ztf_produce_stamps.py --table BTS_transients_2021-07-05.csv --meta-dir metatables --outdir stamps [--ifirst 0] [--ilast 10] [--overwrite] [--check-stamps] [--suffix sciimg.fits] `
+ After downloading the images, we can now produce the stamps from the original list of transients and their associated metadata. 
+
+ `python bin/ztf_produce_stamps.py --table BTS_transients_2021-07-05.csv --meta-dir metatables --outdir stamps [--pixels 32] [--ifirst 0] [--ilast 10] [--overwrite] [--check-stamps] [--suffix sciimg.fits] `
+
+ The stamps will be written in fits format into `--outdir` organised by transient name (provided in  the `--table`). 
+
+ The size of the stamps is set by `--pixels`. 
+
+ One can check the status of which stamps are produced with `--check-stamps`. 
 
 
 
