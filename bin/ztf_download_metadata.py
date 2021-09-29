@@ -76,7 +76,7 @@ def get_metadata(name, ra, dec, jd_peak,
 names, ras, decs, jd_peaks = read_bts_table(args.table)
 os.makedirs(args.outdir, exist_ok=True)
 
-ilast = len(name) if args.ilast == 0 else args.ilast
+ilast = len(names) if args.ilast == 0 else args.ilast
 
 for i in range(args.ifirst, ilast):
     print(f'Progress: {args.ifirst} <= {i} < {args.ilast}')
