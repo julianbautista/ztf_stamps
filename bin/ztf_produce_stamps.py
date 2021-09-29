@@ -81,7 +81,13 @@ def get_stamp(image_file, sky_coord, pixels=32):
     if not os.path.exists(image_file):
         print(f' Image not found: {image_file}')
         return None
-    image_full = fits.open(image_file)[0]
+    
+    hdus = fits.open(image_file)
+    if len(hdus)> 1: 
+        image_full = hdus[1]
+    else:
+        image_full = hdus[0]
+
     wcs = WCS(header=image_full.header)
 
     cutout = Cutout2D(  image_full.data, 
@@ -202,7 +208,7 @@ def main():
             print(f' ERROR: No images found for {name}')
             continue
         if np.sum(image_exist) < image_exist.size:
-            print(' Warning: Not all images are downloaded, we will use those that exist')
+            print(' Warning: {np.sum(image_exist)} out of {image_exist.size} are available, we will use those that exist')
 
         #-- If not overwriting, only produce stamps for those missing
         if args.overwrite == False:

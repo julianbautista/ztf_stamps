@@ -6,17 +6,49 @@ import numpy as np
 from ztfquery import query
 
 
-parser = argparse.ArgumentParser(description='Download ZTF images')
-parser.add_argument('--table', type=str, required=True,
-                    help='Path of metadata table in csv format')
-parser.add_argument('--ncpu', type=int, default=20,
-                    help='Number of machines for dask')
-parser.add_argument('--overwrite', action="store_true", default=False,
-                    help='If set, will re-download all images')
-parser.add_argument('--check-images', action="store_true", default=False,
-                    help='If set, will only check if images exist')
-parser.add_argument('--suffix', type=str, default='sciimg.fits', 
-                    help='''
+
+def limit_numpy(nthreads=4):
+    """ This is required to avoid multithreading within a cpu"""
+    import os
+    threads = str(nthreads)
+    #print(f"threads {threads}")
+    os.environ["NUMEXPR_NUM_THREADS"] = threads
+    os.environ["OMP_NUM_THREADS"] = threads
+    os.environ["OPENBLAS_NUM_THREADS"] = threads
+    os.environ["MKL_NUM_THREADS"] = threads
+    os.environ["VECLIB_MAXIMUM_THREADS"] = threads
+
+def exist(files):
+    ''' Takes a list of filenames and returns an array of booleans 
+        stating if the files exist
+    '''
+    files_exist = np.array([os.path.exists(f) for f in files])
+    return files_exist 
+
+
+def get_filenames_from_meta(zquery, suffix='sciimg.fits'):
+    
+    #-- Create filenames from metadata but do not download them
+    filenames = zquery.get_data(suffix=suffix, downloadit=False)
+
+    #-- Check how many exist
+    filenames_exist = exist(filenames)
+    
+    return filenames, filenames_exist
+
+def main():
+
+    parser = argparse.ArgumentParser(description='Download ZTF images')
+    parser.add_argument('--table', type=str, required=True,
+                        help='Path of metadata table in csv format')
+    parser.add_argument('--ncpu', type=int, default=20,
+                        help='Number of machines for dask')
+    parser.add_argument('--overwrite', action="store_true", default=False,
+                        help='If set, will re-download all images')
+    parser.add_argument('--check-images', action="store_true", default=False,
+                        help='If set, will only check if images exist')
+    parser.add_argument('--suffix', type=str, default='sciimg.fits', 
+                        help='''
     Here is the list of available options depending on you image kind:
         
     # Science image (kind="sci"):
@@ -50,37 +82,6 @@ parser.add_argument('--suffix', type=str, default='sciimg.fits',
 
 ''')
 
-def limit_numpy(nthreads=4):
-    """ This is required to avoid multithreading within a cpu"""
-    import os
-    threads = str(nthreads)
-    #print(f"threads {threads}")
-    os.environ["NUMEXPR_NUM_THREADS"] = threads
-    os.environ["OMP_NUM_THREADS"] = threads
-    os.environ["OPENBLAS_NUM_THREADS"] = threads
-    os.environ["MKL_NUM_THREADS"] = threads
-    os.environ["VECLIB_MAXIMUM_THREADS"] = threads
-
-def exist(files):
-    ''' Takes a list of filenames and returns an array of booleans 
-        stating if the files exist
-    '''
-    files_exist = np.array([os.path.exists(f) for f in files])
-    return files_exist 
-
-
-def get_filenames_from_meta(zquery, suffix='sciimg.fits'):
-    
-    #-- Create filenames from metadata but do not download them
-    files_sci = zquery.get_data(suffix=suffix, downloadit=False)
-
-    #-- Check how many exist
-    files_sci_exist = exist(files_sci)
-    print(f'{len(files_sci)} sci files, {np.sum(files_sci_exist)} exist')
-    
-    return files_sci, files_sci_exist
-
-def main():
     limit_numpy(4)
 
     args = parser.parse_args()
@@ -89,7 +90,7 @@ def main():
     zquery = query.ZTFQuery().from_metafile(args.table)
     image_files, image_exist = get_filenames_from_meta(zquery, suffix=args.suffix)
 
-    print(f'Found {len(image_files)} exposures in {args.table}, {sum(image_exist)} exist already')
+    print(f'Found {len(image_files)} exposures in {args.table}, {sum(image_exist)} of {args.suffix}  exist already')
 
     if args.check_images:
         return
